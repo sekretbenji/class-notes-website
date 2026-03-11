@@ -1,205 +1,432 @@
-index.html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Class Notes Platform</title>
-    <!-- Use Tailwind CSS via CDN for quick styling -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
+    <title>Cathedral TV</title>
+    <!--
+      This file builds a simple single‑page application using plain
+      React, Tailwind CSS and a handful of CDN modules.  It renders
+      the Cathedral TV layout originally provided as a React component
+      in b8d73cea‑0872‑4bc9‑8956‑4bdb0e5c05a1.jsx without any build
+      system.  To avoid the need for a bundler the animations from
+      framer‑motion have been removed and the motion components have
+      been replaced with plain HTML elements.  Lucide icons are
+      imported from their UMD build so they can be used directly.
+    -->
+    <!-- Tailwind via CDN.  This injects the Tailwind utilities at runtime. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM via CDN.  These must load before the Babel script. -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Lucide React UMD build.  Attaches components to window.LucideReact. -->
+    <script src="https://unpkg.com/lucide-react"></script>
+    <!-- Babel Standalone allows us to write JSX directly in the browser. -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   </head>
-  <body class="bg-gray-100 min-h-screen flex flex-col">
-    <!-- Navigation bar -->
-    <nav class="bg-blue-600 p-4 text-white flex justify-between items-center">
-      <div class="font-bold text-xl">Class Notes</div>
-      <div id="nav-links" class="space-x-4 hidden">
-        <button class="nav-link hover:underline" data-target="dashboard">Dashboard</button>
-        <button class="nav-link hover:underline" data-target="my-notes">My Notes</button>
-        <button class="nav-link hover:underline" data-target="library">Class Library</button>
-        <button class="nav-link hover:underline" data-target="profile">Profile</button>
-        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Logout</button>
-      </div>
-    </nav>
+  <body class="min-h-screen bg-neutral-950 text-white">
+    <!-- Application root -->
+    <div id="root"></div>
+    <script type="text/babel">
+      {/**
+       * Pull the hooks we need off of React.  Destructure icons from the
+       * global LucideReact namespace provided by the UMD build.  These
+       * variables must be defined outside of the component definition so
+       * they aren’t recreated on every render.  Note that we do not
+       * import framer-motion here; instead we swap its motion components
+       * for plain elements since GitHub Pages cannot run a bundler.
+       */}
+      const { useState, useMemo } = React;
+      const {
+        Play,
+        Search,
+        Calendar,
+        Newspaper,
+        Bell,
+        FileText,
+        Radio,
+        Tv,
+        Menu,
+        ChevronRight,
+      } = LucideReact;
 
-    <!-- Main content area -->
-    <div id="content" class="flex-1 p-4">
-      <!-- Authentication (login/signup) section -->
-      <div
-        id="auth-section"
-        class="max-w-md mx-auto bg-white p-6 rounded shadow"
-      >
-        <h2 id="auth-title" class="text-2xl font-semibold mb-4">Login</h2>
-        <!-- Login form -->
-        <form id="loginForm" class="space-y-4">
-          <input
-            id="loginEmail"
-            type="email"
-            placeholder="Email"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <input
-            id="loginPassword"
-            type="password"
-            placeholder="Password"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <button
-            type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-          >
-            Login
-          </button>
-        </form>
-        <!-- Signup form (hidden by default) -->
-        <form id="signupForm" class="space-y-4 hidden">
-          <input
-            id="signupName"
-            type="text"
-            placeholder="Full Name"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <input
-            id="signupEmail"
-            type="email"
-            placeholder="Email"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <input
-            id="signupPassword"
-            type="password"
-            placeholder="Password"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <button
-            type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-          >
-            Sign Up
-          </button>
-        </form>
-        <p class="text-sm text-center mt-4">
-          <span
-            id="toggleAuth"
-            class="text-blue-600 cursor-pointer hover:underline"
-            >Don't have an account? Sign up</span
-          >
-        </p>
-      </div>
+      // Data definitions.  In a real application these would likely be
+      // fetched from an API but here we hardcode them to match the
+      // provided design.
+      const livePrograms = [
+        {
+          time: "06:30",
+          title: "Morning Prayer",
+          status: "Upcoming",
+          description: "Start the day with prayer, psalms, and community reflection.",
+        },
+        {
+          time: "09:00",
+          title: "Live Mass from Ggulu Cathedral",
+          status: "Live",
+          description:
+            "Main liturgical broadcast with live participation and online viewers.",
+        },
+        {
+          time: "13:00",
+          title: "Formation Talk",
+          status: "Later",
+       description:
+            "A teaching session for seminarians, parishioners, and visitors.",
+        },
+        {
+          time: "18:30",
+          title: "Evening Rosary",
+          status: "Later",
+          description: "A meditative close to the day with Marian devotion and prayer.",
+        },
+      ];
 
-      <!-- Dashboard section -->
-      <div id="dashboard" class="hidden">
-        <h2 class="text-2xl font-semibold mb-4">
-          Welcome, <span id="userName"></span>!
-        </h2>
-        <p>
-          You have
-          <span id="notesCount" class="font-bold">0</span>
-          notes (&nbsp;<span id="publishedCount" class="font-bold">0</span>
-          published).
-        </p>
-      </div>
+      const articles = [
+        {
+          category: "Featured",
+          title: "Sunday Homily Highlights",
+          excerpt: "Catch the main message from this week’s preaching and pastoral reflections.",
+        },
+        {
+          category: "Vocation",
+          title: "Discernment in Seminary Life",
+          excerpt: "A reflective piece on discipline, silence, study, and the call to priesthood.",
+        },
+        {
+          category: "Church",
+          title: "Why the Bulletin Matters",
+          excerpt: "A well-organized bulletin helps the faithful follow liturgy, events, and formation.",
+        },
+        {
+          category: "Community",
+          title: "Seminary Community News",
+          excerpt: "Updates from formation, liturgy, sports, and academic life around the seminary.",
+        },
+      ];
 
-      <!-- My Notes section -->
-      <div id="my-notes" class="hidden">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-semibold">My Notes</h2>
-          <button
-            id="newNoteBtn"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            New Note
-          </button>
-        </div>
-        <div id="notesList" class="space-y-4"></div>
-      </div>
+      const bulletins = [
+        { month: "March 2026", title: "Monthly Bulletin", type: "PDF + Web" },
+        { month: "February 2026", title: "Lenten Preparation Bulletin", type: "Archive" },
+        { month: "January 2026", title: "New Year Pastoral Notes", type: "Archive" },
+      ];
 
-      <!-- Note editor (create/edit) -->
-      <div
-        id="note-editor"
-        class="hidden max-w-2xl mx-auto bg-white p-6 rounded shadow"
-      >
-        <h2 id="editorTitle" class="text-xl font-semibold mb-4">Create Note</h2>
-        <form id="noteForm" class="space-y-4">
-          <input
-            id="noteTitle"
-            type="text"
-            placeholder="Title"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <input
-            id="noteSubject"
-            type="text"
-            placeholder="Subject"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <input
-            id="noteTopic"
-            type="text"
-            placeholder="Topic/Tags (comma separated)"
-            class="w-full p-2 border rounded"
-          />
-          <textarea
-            id="noteContent"
-            placeholder="Content"
-            rows="6"
-            class="w-full p-2 border rounded"
-            required
-          ></textarea>
-          <select
-            id="noteVisibility"
-            class="w-full p-2 border rounded"
-          >
-            <option value="private">Private</option>
-            <option value="published">Published</option>
-          </select>
-          <div class="flex justify-end space-x-2">
-            <button
-              type="button"
-              id="cancelNoteBtn"
-              class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-            >
-              Save
-            </button>
+      const announcements = [
+        "Choir practice moved to Friday evening at 5:00 PM.",
+        "Seminary community day scheduled for Saturday afternoon.",
+        "New reflections and article pages added to the website.",
+        "Livestream recordings will now be archived automatically.",
+      ];
+
+      const quickSections = [
+        {
+          name: "Live",
+          description: "Watch current and upcoming broadcasts.",
+          icon: Radio,
+        },
+        {
+          name: "Posts",
+          description: "Short updates and quick community stories.",
+          icon: Newspaper,
+        },
+        {
+          name: "Bulletin",
+          description: "View the current monthly bulletin and archives.",
+          icon: FileText,
+        },
+        {
+          name: "Announcements",
+          description: "Important notices for viewers and the seminary.",
+          icon: Bell,
+        },
+      ];
+
+      // Section title component.  Accepts an icon component and textual
+      // content for the heading.  All icons are rendered using LucideReact.
+      function SectionTitle({ icon: Icon, title, subtitle }) {
+        return (
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-2.5">
+                <Icon className="h-5 w-5 text-white/90" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
+        <p className="mt-1 text-sm text-white/55">{subtitle}</p>
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
+        );
+      }
 
-      <!-- Class Library section -->
-      <div id="library" class="hidden">
-        <h2 class="text-2xl font-semibold mb-4">Class Library</h2>
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="Search by title, subject, topic, or author"
-          class="w-full p-2 border rounded mb-4"
-        />
-        <div id="libraryList" class="space-y-4"></div>
-      </div>
+      // Main component.  This mirrors the original React version but
+      // without framer-motion.  It maintains search and menu state and
+      // filters articles on the fly.
+      function LiveTVWebsite() {
+        const [search, setSearch] = useState("");
+        const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-      <!-- Profile section -->
-      <div id="profile" class="hidden">
-        <h2 class="text-2xl font-semibold mb-4">My Profile</h2>
-        <p><strong>Name:</strong> <span id="profileName"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-      </div>
-    </div>
-    <footer class="text-center p-4 text-sm text-gray-500">&copy; 2026 Class Notes Platform</footer>
-    <!-- App logic -->
-    <script src="script.js"></script>
+        // Memoize article filtering to avoid unnecessary recalculations.
+        const filteredArticles = useMemo(() => {
+          const q = search.trim().toLowerCase();
+          if (!q) return articles;
+          return articles.filter(
+            (item) =>
+              item.title.toLowerCase().includes(q) ||
+              item.excerpt.toLowerCase().includes(q) ||
+              item.category.toLowerCase().includes(q)
+          );
+        }, [search]);
+
+        return (
+          <div className="min-h-screen bg-neutral-950 text-white">
+            {/* background overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(210,210,210,0.12),_transparent_30%),linear-gradient(to_bottom,_rgba(255,255,255,0.03),_transparent_25%)]" />
+
+            {/* header */}
+            <header className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
+              <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 p-2">
+                    <Tv className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold tracking-tight md:text-xl">Cathedral TV</div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-white/45">Live • Articles • Bulletin</div>
+                  </div>
+                </div>
+
+                <nav className="hidden items-center gap-6 text-sm text-white/75 lg:flex">
+                  <a href="#live" className="transition hover:text-white">Live</a>
+                  <a href="#programs" className="transition hover:text-white">Programs</a>
+                  <a href="#articles" className="transition hover:text-white">Articles</a>
+                  <a href="#bulletin" className="transition hover:text-white">Bulletin</a>
+                  <a href="#announcements" className="transition hover:text-white">Announcements</a>
+                </nav>
+
+                <div className="flex items-center gap-3">
+                  <button className="hidden rounded-2xl border border-white/15 bg-white px-4 py-2 text-sm font-semibold text-black shadow-2xl md:inline-flex">
+                    Watch Live
+                  </button>
+                  <button
+                    onClick={() => setMobileMenuOpen((v) => !v)}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-2.5 lg:hidden"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile menu */}
+              {mobileMenuOpen && (
+                <div className="border-t border-white/10 px-4 py-4 lg:hidden">
+                  <div className="grid gap-3 text-sm text-white/75">
+                    <a href="#live">Live</a>
+                    <a href="#programs">Programs</a>
+                    <a href="#articles">Articles</a>
+                    <a href="#bulletin">Bulletin</a>
+                    <a href="#announcements">Announcements</a>
+                  </div>
+                </div>
+              )}
+            </header>
+
+            {/* main content area */}
+            <main className="relative mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
+              {/* live and sidebar */}
+              <section className="grid gap-6 lg:grid-cols-[1.5fr,0.8fr]">
+                <div id="live" className="overflow-hidden rounded-[28px] border border-white/10 bg-neutral-900 shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                  <div className="aspect-video bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.55))] p-5 md:p-8">
+                    <div className="flex h-full flex-col justify-between">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-red-300">
+                          <span className="h-2 w-2 rounded-full bg-red-400" /> Live Now
+                        </div>
+                        <div className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/60">
+                          1.2k watching
+                        </div>
+                      </div>
+                      <div className="max-w-3xl">
+                        <div className="mb-3 text-sm uppercase tracking-[0.3em] text-white/45">Main Broadcast</div>
+                        <h1 className="text-3xl font-bold leading-tight tracking-tight md:text-5xl">
+                          Live Mass from Ggulu Cathedral
+                        </h1>
+                        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
+                          A dynamic TV‑style homepage for livestreams, articles, bulletin pages, seminary notices,
+                          and archived broadcasts — designed to feel modern, reverent, and easy to update.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        <button className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black">
+                          <Play className="h-4 w-4 fill-current" /> Play Live Stream
+                        </button>
+                        <button className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white">
+                          Open Program Guide
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <aside className="space-y-6">
+                  <div className="rounded-[28px] border border-white/10 bg-neutral-900 p-5 shadow-2xl">
+                    <SectionTitle
+                      icon={Calendar}
+                      title="Today’s Schedule"
+                      subtitle="Programs arranged for live viewers and later sessions"
+                    />
+                    <div className="mt-5 space-y-3">
+                      {livePrograms.map((item) => (
+                        <div key={item.time + item.title} className="rounded-2xl border border-white/8 bg-white/5 p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <div className="text-xs uppercase tracking-[0.22em] text-white/40">{item.time}</div>
+                              <div className="mt-1 text-base font-semibold">{item.title}</div>
+                            </div>
+                            <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/70">
+                              {item.status}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-white/60">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5">
+                    <SectionTitle
+                      icon={Bell}
+                      title="Quick Alerts"
+                      subtitle="Fresh notices from the seminary and broadcast desk"
+                    />
+                    <div className="mt-5 space-y-3 text-sm text-white/75">
+                      {announcements.slice(0, 3).map((item) => (
+                        <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-3.5">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </aside>
+              </section>
+
+              {/* quick sections */}
+              <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {quickSections.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.name}
+                      className="rounded-[24px] border border-white/10 bg-white/5 p-5 shadow-xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-2.5">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <h3 className="text-lg font-semibold">{item.name}</h3>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-white/60">{item.description}</p>
+                    </div>
+                  );
+                })}
+              </section>
+
+              {/* articles and bulletin */}
+              <section id="articles" className="mt-8 grid gap-6 lg:grid-cols-[1.15fr,0.85fr]">
+                <div className="rounded-[28px] border border-white/10 bg-neutral-900 p-5 md:p-6">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <SectionTitle
+                      icon={Newspaper}
+                      title="Articles & Posts"
+                      subtitle="Dynamic content blocks for stories, reflections, and seminary updates"
+                    />
+                    <div className="relative w-full md:w-72">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search content"
+                        className="w-full rounded-2xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-sm outline-none placeholder:text-white/30"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                    {filteredArticles.map((item) => (
+                      <article
+                        key={item.title}
+                        className="group rounded-[24px] border border-white/10 bg-white/5 p-5 transition hover:bg-white/[0.08]"
+                      >
+                        <div className="text-xs uppercase tracking-[0.22em] text-white/40">{item.category}</div>
+                        <h3 className="mt-3 text-xl font-semibold leading-tight">{item.title}</h3>
+                        <p className="mt-3 text-sm leading-6 text-white/65">{item.excerpt}</p>
+                        <button className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-white/85 transition group-hover:text-white">
+                          Read full article <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+
+                <div id="bulletin" className="rounded-[28px] border border-white/10 bg-neutral-900 p-5 md:p-6">
+                  <SectionTitle
+                    icon={FileText}
+       title="Bulletin Library"
+                    subtitle="Current issue plus previous monthly archives"
+                  />
+                  <div className="mt-6 space-y-3">
+                    {bulletins.map((item) => (
+                      <div key={item.month + item.title} className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.22em] text-white/40">{item.month}</div>
+                            <div className="mt-1 text-base font-semibold">{item.title}</div>
+                          </div>
+                          <div className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/65">
+                            {item.type}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="mt-5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black">
+                    Open Current Bulletin
+                  </button>
+                </div>
+              </section>
+
+              {/* announcements */}
+              <section id="announcements" className="mt-8 rounded-[28px] border border-white/10 bg-neutral-900 p-5 md:p-6">
+                <SectionTitle
+                  icon={Bell}
+                  title="Announcements"
+                  subtitle="Dedicated notice space for seminary updates and important messages"
+                />
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {announcements.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-[22px] border border-white/10 bg-white/5 p-4 text-sm leading-6 text-white/70"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* footer */}
+              <footer className="mt-8 rounded-[28px] border border-white/10 bg-black/35 px-5 py-6 text-sm text-white/50">
+                Cathedral TV — built as a dynamic, TV‑style website for livestreams, articles, bulletin pages,
+                notices, and archived programming.
+              </footer>
+            </main>
+          </div>
+        );
+      }
+
+      // Render the application into the root div.  React 17/18 expects
+      // render() for UMD; React 18 still supports render for compatibility.
+      ReactDOM.render(<LiveTVWebsite />, document.getElementById("root"));
+    </script>
   </body>
 </html>
