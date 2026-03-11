@@ -1,5 +1,4 @@
-<
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,16 +11,15 @@
       in b8d73cea‑0872‑4bc9‑8956‑4bdb0e5c05a1.jsx without any build
       system.  To avoid the need for a bundler the animations from
       framer‑motion have been removed and the motion components have
-      been replaced with plain HTML elements.  Lucide icons are
-      imported from their UMD build so they can be used directly.
+      been replaced with plain HTML elements.  To avoid reliance on
+      external icon libraries we use simple Unicode characters instead
+      of Lucide icons.
     -->
     <!-- Tailwind via CDN.  This injects the Tailwind utilities at runtime. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React and ReactDOM via CDN.  These must load before the Babel script. -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Lucide React UMD build.  Attaches components to window.LucideReact. -->
-    <script src="https://unpkg.com/lucide-react"></script>
     <!-- Babel Standalone allows us to write JSX directly in the browser. -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   </head>
@@ -38,6 +36,24 @@
        * for plain elements since GitHub Pages cannot run a bundler.
        */}
       const { useState, useMemo } = React;
+      // Define a simple mapping from icon names to emoji characters.  We
+      // cannot rely on lucide-react in the GitHub Pages context so we use
+      // emoji to represent the various icons instead.  Each property of
+      // ICONS maps to a Unicode character that approximates the intended
+      // symbol.  These constants are destructured below for ease of use.
+      const ICONS = {
+        Play: "\u25B6", // play symbol ▶
+        Search: "\uD83D\uDD0D", // magnifying glass 🔍
+        Calendar: "\uD83D\uDCC5", // calendar 📅
+        Newspaper: "\uD83D\uDCF0", // newspaper 📰
+        Bell: "\uD83D\uDD14", // bell 🔔
+        FileText: "\uD83D\uDCC4", // document 📄
+        Radio: "\uD83D\uDCFB", // radio 📻
+        Tv: "\uD83D\uDCFA", // television 📺
+        Menu: "\u2630", // hamburger menu ☰
+        ChevronRight: "\u203A", // single right-pointing angle ›
+      };
+
       const {
         Play,
         Search,
@@ -49,7 +65,7 @@
         Tv,
         Menu,
         ChevronRight,
-      } = LucideReact;
+      } = ICONS;
 
       // Data definitions.  In a real application these would likely be
       // fetched from an API but here we hardcode them to match the
@@ -72,7 +88,7 @@
           time: "13:00",
           title: "Formation Talk",
           status: "Later",
-       description:
+          description:
             "A teaching session for seminarians, parishioners, and visitors.",
         },
         {
@@ -142,18 +158,20 @@
         },
       ];
 
-      // Section title component.  Accepts an icon component and textual
-      // content for the heading.  All icons are rendered using LucideReact.
-      function SectionTitle({ icon: Icon, title, subtitle }) {
+      // Section title component.  Accepts a Unicode icon character and
+      // textual content for the heading.  Icons are displayed as simple
+      // characters rather than React components.
+      function SectionTitle({ icon, title, subtitle }) {
         return (
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-2.5">
-                <Icon className="h-5 w-5 text-white/90" />
+                {/* Render the icon as a character instead of a React component */}
+                <span className="h-5 w-5 text-white/90">{icon}</span>
               </div>
               <div>
                 <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
-        <p className="mt-1 text-sm text-white/55">{subtitle}</p>
+                <p className="mt-1 text-sm text-white/55">{subtitle}</p>
               </div>
             </div>
           </div>
@@ -189,7 +207,8 @@
               <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl border border-white/10 bg-white/10 p-2">
-                    <Tv className="h-5 w-5" />
+                    {/* Display the TV icon as a character */}
+                    <span className="h-5 w-5">{Tv}</span>
                   </div>
                   <div>
                     <div className="text-lg font-bold tracking-tight md:text-xl">Cathedral TV</div>
@@ -213,7 +232,8 @@
                     onClick={() => setMobileMenuOpen((v) => !v)}
                     className="rounded-2xl border border-white/10 bg-white/5 p-2.5 lg:hidden"
                   >
-                    <Menu className="h-5 w-5" />
+                    {/* Display the menu icon as a character */}
+                    <span className="h-5 w-5">{Menu}</span>
                   </button>
                 </div>
               </div>
@@ -259,7 +279,8 @@
                       </div>
                       <div className="flex flex-wrap gap-3">
                         <button className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black">
-                          <Play className="h-4 w-4 fill-current" /> Play Live Stream
+                          {/* Use an emoji instead of a Lucide icon */}
+                          <span className="h-4 w-4">{Play}</span> Play Live Stream
                         </button>
                         <button className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white">
                           Open Program Guide
@@ -313,23 +334,21 @@
 
               {/* quick sections */}
               <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {quickSections.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.name}
-                      className="rounded-[24px] border border-white/10 bg-white/5 p-5 shadow-xl"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-2.5">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <h3 className="text-lg font-semibold">{item.name}</h3>
+                {quickSections.map((item) => (
+                  <div
+                    key={item.name}
+                    className="rounded-[24px] border border-white/10 bg-white/5 p-5 shadow-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-2.5">
+                        {/* Display the icon character for each quick section */}
+                        <span className="h-5 w-5">{item.icon}</span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-white/60">{item.description}</p>
+                      <h3 className="text-lg font-semibold">{item.name}</h3>
                     </div>
-                  );
-                })}
+                    <p className="mt-3 text-sm leading-6 text-white/60">{item.description}</p>
+                  </div>
+                ))}
               </section>
 
               {/* articles and bulletin */}
@@ -342,7 +361,8 @@
                       subtitle="Dynamic content blocks for stories, reflections, and seminary updates"
                     />
                     <div className="relative w-full md:w-72">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                      {/* Replace the search icon with a character */}
+                      <span className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35">{Search}</span>
                       <input
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -362,7 +382,7 @@
                         <h3 className="mt-3 text-xl font-semibold leading-tight">{item.title}</h3>
                         <p className="mt-3 text-sm leading-6 text-white/65">{item.excerpt}</p>
                         <button className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-white/85 transition group-hover:text-white">
-                          Read full article <ChevronRight className="h-4 w-4" />
+                          Read full article <span className="h-4 w-4">{ChevronRight}</span>
                         </button>
                       </article>
                     ))}
@@ -372,7 +392,7 @@
                 <div id="bulletin" className="rounded-[28px] border border-white/10 bg-neutral-900 p-5 md:p-6">
                   <SectionTitle
                     icon={FileText}
-       title="Bulletin Library"
+                    title="Bulletin Library"
                     subtitle="Current issue plus previous monthly archives"
                   />
                   <div className="mt-6 space-y-3">
